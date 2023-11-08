@@ -31,15 +31,15 @@ class SEIRD:
 
         j = 0
         while True:
-            S0, E0, I0, R0, D0, t0 = df.iloc[j]
-            t1 = t0 + dt
-            S1 = S0 - beta * I0 * S0
-            E1 = E0 + beta * I0 * S0 - alpha * E0
-            I1 = I0 + alpha * E0 - gamma * I0
-            R1 = R0 + gamma * (1 - theta) * I0
-            D1 = D0 + gamma * theta * I0
-            df.loc[j+1] = [S1, E1, I1, R1, D1, t1]
+            St, Et, It, Rt, Dt, t = df.iloc[j]
+            t1 = t + dt
+            St1 = St - beta * It * St
+            Et1 = Et + beta * It * St - alpha * Et
+            It1 = It + alpha * Et - gamma * It
+            Rt1 = Rt + gamma * (1 - theta) * It
+            Dt1 = Dt + gamma * theta * It
+            df.loc[j+1] = [St1, Et1, It1, Rt1, Dt1, t1]
             j += 1
-            if np.linalg.norm(np.array([S1, E1, I1, R1, D1]) - np.array([S0, E0, I0, R0, D0])) <= tol and j > 20:
+            if np.linalg.norm(np.array([St1, Et1, It1, Rt1, Dt1]) - np.array([St, Et, It, Rt, Dt])) <= tol and j > 20:
                 break
         return df
