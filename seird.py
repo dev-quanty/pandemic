@@ -15,7 +15,7 @@ class SEIRD:
             R0: Basic Reproduction Rate
             i: Incubation Period (days)
             r: Disease Duration until recovered (days)
-            theta: Mortality Rate
+            theta: Mortality Rate (%)
             dt: Step size (days)
             tol: Stopping Criterion
 
