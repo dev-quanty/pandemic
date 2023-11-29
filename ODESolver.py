@@ -58,32 +58,3 @@ def RK4(func, y0, t, args):
         k4 = func(result[i] + k3 * dt, t[i] + dt, args)
         result[i + 1] = result[i] + dt * (k1 + 2 * k2 + 2 * k3 + k4) / 6
     return result
-
-
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-
-    def sir(y, t, args):
-        beta, gamma = args
-        S, I, R = y
-        dSdt = -beta * S * I
-        dIdt = beta * S * I - gamma * I
-        dRdt = gamma * I
-        return np.array([dSdt, dIdt, dRdt])
-
-    y0 = np.array([0.99999873, 1.27e-6, 0])
-    t = np.arange(0, 151)
-    args = (1/2, 1/3)
-    method = "RK4"
-
-    result = solve(sir, y0, t, method, args)
-
-    fig, ax = plt.subplots()
-    ax.set_title(method)
-    ax.set_xlabel("Time (Days)")
-    ax.set_ylabel("Ratio")
-    ax.plot(t, result[:, 0], label="Susceptibles")
-    ax.plot(t, result[:, 1], label="Infected")
-    ax.plot(t, result[:, 2], label="Removed")
-    ax.legend()
-    plt.show()
