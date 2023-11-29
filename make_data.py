@@ -6,10 +6,10 @@ from scipy.integrate import odeint
 # define starting population
 y0 = [10, 1, 0, 0, 0, 0, 0, 0, 0]
 
-t = np.linspace(0, 100, num=1001)
+t = np.linspace(0, 120, num=1001)
 
 # variables that our fitting should approximate
-k_i = 0.4
+k_i = 0.7
 k_h = 0.1
 k_f = 0.1
 d = 0.4
@@ -19,9 +19,6 @@ params = [k_i, k_h, k_f, d]
 
 def sim(variables, t, params):
     # set parameters - should be calculated with real-world Data
-    i = 0.35
-    h_s = 0.1
-    f = 0.2
     e = 0.2
     q_e = 0.2
     q_i = 0.2
@@ -39,16 +36,14 @@ def sim(variables, t, params):
     Q = variables[4]
     H = variables[5]
     F = variables[6]
-    R = variables[7]
-    D = variables[8]
 
     k_i = params[0]
     k_h = params[1]
     k_f = params[2]
     d = params[3]
 
-    dsdt = -k_i * i * S * I - k_h * h_s * S * H - k_f * f * S * F
-    dedt = k_i * i * S * I + k_h * h_s * S * H + k_f * f * S * F - e * E - q_e * E
+    dsdt = -k_i * S * I - k_h * S * H - k_f * S * F
+    dedt = k_i * S * I + k_h * S * H + k_f * S * F - e * E - q_e * E
     didt = e * E - y_i * I - h * I - q_i * I
     dq_edt = q_e * E - e * Q_e
     dqdt = e * Q_e + q_i * I - y_q * Q - h * Q
