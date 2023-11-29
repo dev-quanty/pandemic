@@ -1,8 +1,71 @@
 import pandas as pd
 import numpy as np
 
-
+# configure error-handeling
 np.seterr(all='raise')
+
+''' 
+In this section we define the model to use.
+This function receives the inputs of a specific time and returns the calculated derivatives at the point t.
+The parameters are added in the numpy-array param_SEIRD.
+The previous SEIRD-values (or the values at t = t_0) are added into a numpy-array called last_SEIRD.
+'''
+
+# param_SEIRD = [k_i, e, y_i, p_i]
+parameters = np.array(0.6, 0.3, 0.7, 0.2)
+
+# last_SEIRD = [S, E, I, R, D]
+last_SEIRD = np.array(100, 1, 0, 0, 0)
+
+
+def SEIRD(t, parameters):  # [S, E, I, R, D, k_i, e, y_i, p_i]
+    # unpack last_SEIRD
+    S = parameters[0]
+    E = parameters[1]
+    I = parameters[2]
+
+    # unpack paramSEIRD
+    k_i = parameters[6]
+    e = parameters[7]
+    y_i = parameters[8]
+    p_i = parameters[9]
+
+    # define derivative functions
+    dSdt = - k_i * S * I
+    dEdt = k_i * S * I - e * E
+    dIdt = e * E - y_i * I
+    dRdt = (1 - p_i) * y_i * I
+    dDdt = p_i * y_i * I
+
+    return np.array(dSdt, dEdt, dIdt, dRdt, dDdt, 0, 0, 0, 0)
+
+
+'''
+general implementation of forward-euler numerical approximation of the next step
+f = function dependent on t and u(t), calculates the derivative
+s0 = starting conditions
+'''
+
+
+def forwardEuler(f, s0, step_nbr, step_size):
+    s = np.zeros(step_nbr, s0)
+    s[0] = s0
+
+    for t in range(1, step_nbr):
+        s[t + 1] = s[t] + step_size * f(t * step_nbr, s[t])
+
+    return np.array(s)
+
+
+""" 
+TODO:
+- TEST forwardEuler on SEIRD
+- adjust Visualize
+- adjust simulate
+- discuss with Team
+"""
+
+
 class SEIRD:
     def __init__(self, initial_values):
         self.initial_values = initial_values
