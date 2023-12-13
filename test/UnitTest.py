@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from models import sir, seird, seirqhfd
+from src.models import sir, seird, seirqhfd
 
 
 class Test_Models(unittest.TestCase):
