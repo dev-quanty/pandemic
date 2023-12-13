@@ -2,9 +2,10 @@ from scipy.optimize import fmin
 from scipy.interpolate import interp1d
 import numpy as np
 from ODESolver import solve
+from toms178 import hooke
 
 
-def minloss(data, model, method, parameters):
+def minloss(data, model, parameters, method="fmin", solver="RK4", **kwargs):
     """
     Minimize the loss between the data and the model simulation. Interpolates between simulation and true data for
     error calculation, if inputted time steps not equidistant.
@@ -12,8 +13,9 @@ def minloss(data, model, method, parameters):
     Args:
         data: TxN+1 array with the time points in the first column, first row corresponds to t=0
         model: Model function with N differential equations
-        method: Method for the ODE Solver
         parameters: List of model parameters, contains NoneType if parameter should be fitted
+        method: Method to minimize the loss (fmin or hooke)
+        solver: Method for the ODE Solver
 
     Returns:
         parameters: All parameters (inputted and fitted)
@@ -40,13 +42,24 @@ def minloss(data, model, method, parameters):
     def loss(missingParams):
         params = fillParams(missingParams)
         y0 = y[0, :]
-        y_est = solve(model, y0, t_est, method, params)
+        y_est = solve(model, y0, t_est, solver, params)
         interpolator = interp1d(t_est, y_est.T, kind="cubic")
         y_fitted = interpolator(t).T
         return np.linalg.norm(y_fitted - y)
 
     missingParams = [0] * nparams
-    minimum = fmin(loss, missingParams)
+
+    if method == "fmin":
+        minimum = fmin(loss, missingParams)
+    elif method == "hooke":
+        rho = kwargs.get("rho", 0.1)
+        eps = kwargs.get("eps", 1e-6)
+        maxiter = kwargs.get("maxiter", 100000)
+        f = lambda X, _: loss(X)
+        _, minimum = hooke(nparams, missingParams, rho, eps, maxiter, f)
+    else:
+        raise ValueError("Method not implemented")
+
     fittedLoss = loss(minimum)
     return fillParams(minimum), fittedLoss
 
@@ -56,13 +69,13 @@ if __name__ == "__main__":
     from models import sir
 
     # Create true data
-    y0 = [0.9, 0.1, 0]
-    params = [1/2, 1/3]
-    t = np.linspace(0, 50, 5000)
+    y0 = [9, 1, 0]
+    params = [0.321, 1.677]
+    t = np.linspace(0, 6, 5000)
     y = solve(sir, y0, t, args=params)
 
     # Fit all parameters
-    fittedparams, loss = minloss(np.hstack([t.reshape(-1, 1), y]), sir, "RK4", [None, None])
+    fittedparams, loss = minloss(np.hstack([t.reshape(-1, 1), y]), sir, [None, None], "hooke", "RK4")
     ytest = solve(sir, y0, t, args=fittedparams)
 
     fig, ax = plt.subplots()
