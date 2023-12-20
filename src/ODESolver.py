@@ -1,5 +1,9 @@
-import numpy as np
+import autograd.numpy as np
+import scipy as sp
+from autograd import jacobian
 from scipy.optimize import fsolve
+from scipy.integrate import Radau
+
 
 
 def solve(func, y0, t, method="RK4", args=()):
@@ -22,6 +26,8 @@ def solve(func, y0, t, method="RK4", args=()):
         return backwardEuler(func, y0, t, args)
     elif method.lower() == "rk4":
         return RK4(func, y0, t, args)
+    elif method.lower() == "Radau":
+        return RKV_Randau(func,y0,t,args)
     else:
         raise ValueError(f"Method {method} not implemented.")
     pass
@@ -57,6 +63,15 @@ def RK4(func, y0, t, args):
         k3 = func(result[i] + (k2 * dt) / 2, t[i] + dt/ 2, args)
         k4 = func(result[i] + k3 * dt, t[i] + dt, args)
         result[i + 1] = result[i] + dt * (k1 + 2 * k2 + 2 * k3 + k4) / 6
+    return result
+
+
+def RKV_Randau(func, y0, t, args):
+    result = np.zeros((np.size(t), np.size(y0)))
+    result[0] = y0
+    dt = t[1] - t[0]
+    J = jacobian(func, t[0], y0)
+    result = Radau(func,t[0],y0,first_step=dt,jac=J)
     return result
 
 def IRK(func, y0, t0, te, dt, A, b, c, tol):

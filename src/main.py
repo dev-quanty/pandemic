@@ -27,7 +27,16 @@ y0 = np.array([0.99999873, 1.27e-6, 0, 0, 0, 0, 0, 0, 0])
 t = np.arange(0, 200)
 args = (1/2, 1/2, 1/8, 1/3, 1/10, 1/10, 1/10, 1/7, 1/7, 1/14, 1/2, 1/2, 2/3, 1/3)
 method = "RK4"
-result = solve(seirqhfd, y0, t, method, args)
+#result = solve(seirqhfd, y0, t, method, args)
+
+# Test Radau Method
+y0 = np.array([0.99999873, 1.27e-6, 0, 0, 0, 0, 0, 0, 0])
+t = np.arange(0, 200)
+args = (1 / 2, 1 / 3)
+method = "Radau"
+result = solve(sir, y0, t, method, args)
+print(result)
+
 
 fig, ax = plt.subplots()
 ax.set_title("SEIRQHFD\n" + method)
