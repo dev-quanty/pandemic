@@ -1,6 +1,6 @@
 import autograd.numpy as np
 import scipy as sp
-from autograd import make_jvp
+from autograd import make_jvp, jacobian
 from scipy.optimize import fsolve
 from scipy.integrate import solve_ivp
 
