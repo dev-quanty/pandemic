@@ -1,8 +1,8 @@
 import autograd.numpy as np
 import scipy as sp
-from autograd import jacobian
+from autograd import make_jvp
 from scipy.optimize import fsolve
-from scipy.integrate import Radau
+from scipy.integrate import solve_ivp
 
 
 
@@ -26,7 +26,7 @@ def solve(func, y0, t, method="RK4", args=()):
         return backwardEuler(func, y0, t, args)
     elif method.lower() == "rk4":
         return RK4(func, y0, t, args)
-    elif method.lower() == "Radau":
+    elif method.lower() == "radau":
         return RKV_Randau(func,y0,t,args)
     else:
         raise ValueError(f"Method {method} not implemented.")
@@ -67,11 +67,14 @@ def RK4(func, y0, t, args):
 
 
 def RKV_Randau(func, y0, t, args):
-    result = np.zeros((np.size(t), np.size(y0)))
-    result[0] = y0
-    dt = t[1] - t[0]
-    J = jacobian(func, t[0], y0)
-    result = Radau(func,t[0],y0,first_step=dt,jac=J)
+    # Define a wrapper function to include the extra 'args'
+    def func_wrapper(t, y):
+        return func(y, t, args)
+
+    # Solve the ODE using the Radau method
+    sol = solve_ivp(func_wrapper, [t[0], t[-1]], y0, method='Radau', t_eval=t, vectorized=False)
+
+    result = sol.y.T  # Transpose to align with original format
     return result
 
 def IRK(func, y0, t0, te, dt, A, b, c, tol):
