@@ -2,6 +2,7 @@ from scipy.optimize import fmin
 from scipy.interpolate import interp1d
 import numpy as np
 from ODESolver import solve
+from models import letter_index
 from toms178 import hooke
 
 
@@ -16,6 +17,7 @@ def minloss(data, model, parameters, method="fmin", solver="RK4", **kwargs):
         parameters: List of model parameters, contains NoneType if parameter should be fitted
         method: Method to minimize the loss (fmin or hooke)
         solver: Method for the ODE Solver
+        kwargs: Additional arguments passed to the minimization method or loss function
 
     Returns:
         parameters: All parameters (inputted and fitted)
@@ -27,6 +29,15 @@ def minloss(data, model, parameters, method="fmin", solver="RK4", **kwargs):
     T = np.max(t)
     t_est = np.linspace(0, T, int(T // dt) + 1, endpoint=True)
     nparams = len([p for p in parameters if p is None])
+
+    letters = kwargs.get("letters", None)
+    if letters:
+        if isinstance(letters, str): letters = list(letters)
+        index, nletters = letter_index(model, letters)
+        y0 = np.zeros((nletters))
+        y0[index] = y[0, :]
+    else:
+        y0 = y[0, :]
 
     def fillParams(missingParams):
         params = []
@@ -41,10 +52,9 @@ def minloss(data, model, parameters, method="fmin", solver="RK4", **kwargs):
 
     def loss(missingParams):
         params = fillParams(missingParams)
-        y0 = y[0, :]
         y_est = solve(model, y0, t_est, solver, params)
         interpolator = interp1d(t_est, y_est.T, kind="cubic")
-        y_fitted = interpolator(t).T
+        y_fitted = interpolator(t).T[:, index]
         return np.linalg.norm(y_fitted - y)
 
     missingParams = [0] * nparams
@@ -75,11 +85,11 @@ if __name__ == "__main__":
     y = solve(sir, y0, t, args=params)
 
     # Fit all parameters
-    fittedparams, loss = minloss(np.hstack([t.reshape(-1, 1), y]), sir, [None, None], "hooke", "RK4")
+    fittedparams, loss = minloss(np.hstack([t.reshape(-1, 1), y[:, [0, 1]]]), sir, [None, None], "hooke", "RK4", letters="SI")
     ytest = solve(sir, y0, t, args=fittedparams)
 
     fig, ax = plt.subplots()
-    ax.set_title(f"True Parameters: {params}\nFitted: {fittedparams}")
+    ax.set_title(f"True Parameters: {params}\nFitted: {fittedparams} - Loss: {loss:.3f}")
     ax.plot(t, y[:, 0], label="S [True]", c="black")
     ax.plot(t, ytest[:, 0], label="S [Test]", c="blue")
     ax.plot(t, y[:, 1], label="I [True]", c="red")
