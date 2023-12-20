@@ -34,3 +34,18 @@ def seirqhfd(y, t, args):
     dFdt = yi * pi * I + yi * pi * QI + yh * ph * H - d * F
     dDdt = d * F
     return np.array([dSdt, dEdt, dIdt, dQEdt, dQIdt, dHdt, dRdt, dFdt, dDdt])
+
+
+def letter_index(model, letters):
+    func = model.__name__
+    if func == "sir":
+        model_letters = list("SIR")
+    elif func == "seird":
+        model_letters = list("SEIRD")
+    elif func == "seirqhfd":
+        model_letters = list("SEIQQHRFD")
+        model_letters[3] = "QE"
+        model_letters[4] = "QI"
+    else:
+        model_letters = []
+    return [model_letters.index(l.upper()) for l in letters if l.upper() in model_letters], len(model_letters)
