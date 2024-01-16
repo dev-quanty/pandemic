@@ -2,7 +2,9 @@ import numpy as np
 import perfplot
 from tabulate import tabulate
 from src.ODESolver import forwardEuler, backwardEuler, RK4
+from src.models import sir, seird, seirqhfd
 
+test_ode = "seirqhfd"
 
 def test_brick():
     def printPretty(out):
@@ -23,10 +25,23 @@ def test_brick():
         return res
 
     def setup(n):
-        y0 = np.random.rand(n)
         t = np.linspace(0, 1, n)
-        args = np.random.rand(n)
-        return func, y0, t, args
+        if test_ode == "sir":
+            y0 = np.random.rand(3)
+            args = np.random.rand(2)
+            return sir, y0, t, args
+        elif test_ode == "seird":
+            y0 = np.random.rand(5)
+            args = np.random.rand(4)
+            return seird, y0, t, args
+        elif test_ode == "seirqhfd":
+            y0 = np.random.rand(9)
+            args = np.random.rand(12)
+            return seirqhfd, y0, t, args
+        else:
+            y0 = np.random.rand(n)
+            args = np.random.rand(n)
+            return func, y0, t, args
 
     # Define your kernels
     kernels = [forwardEuler, backwardEuler, RK4]
