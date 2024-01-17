@@ -73,8 +73,7 @@ def minloss(data, model, parameters, method="fmin", solver="RK4", **kwargs):
     fittedLoss = loss(minimum)
     return fillParams(minimum), fittedLoss
 
-
-if __name__ == "__main__":
+def fittingArtificial():
     import matplotlib.pyplot as plt
     from models import sir
 
@@ -85,7 +84,8 @@ if __name__ == "__main__":
     y = solve(sir, y0, t, args=params)
 
     # Fit all parameters
-    fittedparams, loss = minloss(np.hstack([t.reshape(-1, 1), y[:, [0, 1]]]), sir, [None, None], "hooke", "RK4", letters="SI")
+    fittedparams, loss = minloss(np.hstack([t.reshape(-1, 1), y[:, [0, 1]]]), sir, [None, None], "hooke", "RK4",
+                                 letters="SI")
     ytest = solve(sir, y0, t, args=fittedparams)
 
     fig, ax = plt.subplots()
@@ -95,3 +95,7 @@ if __name__ == "__main__":
     ax.plot(t, y[:, 1], label="I [True]", c="red")
     ax.plot(t, ytest[:, 1], label="I [Test]", c="orange")
     plt.show()
+
+
+if __name__ == "__main__":
+    fittingArtificial()
