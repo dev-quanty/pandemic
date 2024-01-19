@@ -9,28 +9,28 @@ COLUMNS = {
         "Region": "Totals",
         "Column": "Description",
         "Date": "Date",
-        "Total cases of confirmed": ["E", "I"],
-        "Number of contacts followed today": ["QE", "QI"],
-        "Total deaths of confirmed": "F",
-        "Total number of admissions to CTE": "H"
+        "New cases of confirmed": {"Letter": ["E", "I"], "Lag": 19},
+        "Number of contacts followed today": {"Letter": ["QE", "QI"], "Lag": 0},
+        "New deaths registered": {"Letter": "F", "Lag": 5},
+        "New admits to CTE so far": {"Letter": "H", "Lag": 13}
     },
     "Liberia": {
         "Region": "National",
         "Column": "Variable",
         "Date": "Date",
-        "Total confirmed cases": ["E", "I"],
-        "Currently under follow-up": ["QE", "QI"],
-        "Total death/s in confirmed cases": "F",
-        "Total no. currently in Treatment Units": "H"
+        "New case/s (confirmed)": {"Letter": ["E", "I"], "Lag": 19},
+        "Currently under follow-up": {"Letter": ["QE", "QI"], "Lag": 0},
+        "Newly reported deaths": {"Letter": "F", "Lag": 5},
+        "Total no. currently in Treatment Units": {"Letter": "H", "Lag": 0}
     },
     "SierraLeone": {
         "Region": "National",
         "Column": "variable",
         "Date": "date",
-        "cum_confirmed": ["E", "I"],
-        "contacts_followed": ["QE", "QI"],
-        "death_confirmed": "F",
-        "etc_cum_admission": "H"
+        "new_confirmed": {"Letter": ["E", "I"], "Lag": 19},
+        "contacts_followed": {"Letter": ["QE", "QI"], "Lag": 0},
+        "death_confirmed": {"Letter": "F", "Lag": 5, "Cumulated": True},
+        "etc_cum_admission": {"Letter": "H", "Lag": 13}
     }
 }
 
@@ -40,7 +40,7 @@ for country in COLUMNS.keys():
     descr_column = mappings.get("Column")
     dt_column = mappings.get("Date")
     col_data = [k for k, v in mappings.items() if k not in ["Region", "Column", "Date"]]
-    col_df = ['-'.join(v) for k, v in mappings.items() if k not in ["Region", "Column", "Date"]]
+    col_df = ['-'.join(v.get("Letter")) for k, v in mappings.items() if k not in ["Region", "Column", "Date"]]
     df = pd.DataFrame([], columns=["Country", "Date"] + col_df)
 
     country_path = os.path.join(DATA_DIR, country)
@@ -52,9 +52,22 @@ for country in COLUMNS.keys():
         col_values = []
         for col in col_data:
             val = df_file.loc[df_file[descr_column] == col, region]
-            val = int(float(str(val.iloc[0]).replace(",", ""))) if len(val) != 0 and not pd.isna(val.iloc[0]) else -1
+            val = int(float(str(val.iloc[0]).replace(",", ""))) if len(val) != 0 and not pd.isna(val.iloc[0]) else pd.NA
             col_values.append(val)
 
         df.loc[len(df.index)] = [country, dt] + col_values
-    df.to_csv(os.path.join(OUT_DIR, f"{country}_raw.csv"), index=False)
+    df = df.set_index(pd.DatetimeIndex(df["Date"]))
+    df.sort_index(inplace=True, ascending=True)
+
+    for col_name, col_map in zip(col_df, col_data):
+        df[col_name].fillna(method="ffill", inplace=True)
+        df[col_name].fillna(value=0, inplace=True)
+
+        if mappings.get(col_map).get("Cumulated", False):
+            df[col_name] = df[col_name] - df[col_name].shift(1)
+
+        lag = mappings.get(col_map).get("Lag")
+        df[col_name] = df[col_name].rolling(window=f"{lag + 1}D", min_periods=1).sum()
+
+    df.to_excel(os.path.join(OUT_DIR, f"{country}.xlsx"), index=False)
 
