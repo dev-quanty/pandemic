@@ -96,6 +96,7 @@ def fittingArtificial():
     ax.plot(t, ytest[:, 0], label="S [Test]", c="blue")
     ax.plot(t, y[:, 1], label="I [True]", c="red")
     ax.plot(t, ytest[:, 1], label="I [Test]", c="orange")
+    plt.legend()
     plt.show()
 
 
