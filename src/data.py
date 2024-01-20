@@ -35,7 +35,7 @@ COLUMNS = {
         "new_confirmed": {"Letter": ["E", "I"], "Lag": LAG_INFECTED},
         "contacts_followed": {"Letter": ["QE", "QI"], "Lag": 0},
         "death_confirmed": {"Letter": "F", "Lag": LAG_DEATHS, "Cumulated": True},
-        "etc_cum_admission": {"Letter": "H", "Lag": LAG_HOSPITAL}
+        "etc_currently_admitted": {"Letter": "H", "Lag": 0}
     }
 }
 
