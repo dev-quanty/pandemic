@@ -2,8 +2,9 @@ from scipy.optimize import fmin
 from scipy.interpolate import interp1d
 import numpy as np
 from ODESolver import solve
-from models import letter_index
+from models import letter_index, sir
 from toms178 import hooke
+import matplotlib.pyplot as plt
 
 
 def minloss(data, model, parameters, method="fmin", solver="RK4", **kwargs):
@@ -55,7 +56,10 @@ def minloss(data, model, parameters, method="fmin", solver="RK4", **kwargs):
         y_est = solve(model, y0, t_est, solver, params)
         interpolator = interp1d(t_est, y_est.T, kind="cubic")
         y_fitted = interpolator(t).T[:, index]
-        return np.linalg.norm(y_fitted - y)
+        if np.min(y_fitted) < 0:  # when the parameters approx negative people
+            return 10 ** 20
+        else:
+            return np.linalg.norm(y_fitted - y)
 
     missingParams = [0] * nparams
 
@@ -73,14 +77,12 @@ def minloss(data, model, parameters, method="fmin", solver="RK4", **kwargs):
     fittedLoss = loss(minimum)
     return fillParams(minimum), fittedLoss
 
-def fittingArtificial():
-    import matplotlib.pyplot as plt
-    from models import sir
 
+def fittingArtificial():
     # Create true data
     y0 = [9, 1, 0]
     params = [0.321, 1.677]
-    t = np.linspace(0, 6, 5000)
+    t = np.linspace(0, 6, 1000)
     y = solve(sir, y0, t, args=params)
 
     # Fit all parameters
