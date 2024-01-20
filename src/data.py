@@ -76,6 +76,11 @@ for country in COLUMNS.keys():
         df[col_name].fillna(method="ffill", inplace=True)
         df[col_name].fillna(value=0, inplace=True)
 
+        if col_name == "F" and mappings.get(col_map).get("Cumulated", False):
+            df["D"] = df["F"].copy()
+        elif col_name == "F":
+            df["D"] = df["F"].cumsum()
+
         if mappings.get(col_map).get("Cumulated", False):
             df[col_name] = df[col_name] - df[col_name].shift(1)
 
