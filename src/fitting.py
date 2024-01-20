@@ -35,8 +35,11 @@ def minloss(data, model, parameters, method="fmin", solver="RK4", **kwargs):
     if letters:
         if isinstance(letters, str): letters = list(letters)
         index, nletters = letter_index(model, letters)
-        y0 = np.zeros((nletters))
-        y0[index] = y[0, :]
+        if kwargs.get("y0") is not None:
+            y0 = kwargs.get("y0")
+        else:
+            y0 = np.zeros((nletters))
+            y0[index] = y[0, :]
     else:
         y0 = y[0, :]
 
