@@ -40,9 +40,9 @@ def testODEwith2D():
     plt.plot(t_space, solForEuler.T[1], color='crimson', linewidth=1, label='forwardEuler y')
     plt.plot(t_space, solBackEuler.T[0], color='mediumblue', linewidth=1, label='backwardEuler x')
     plt.plot(t_space, solBackEuler.T[1], color='dodgerblue', linewidth=1, label='backwardEuler y')
-    plt.title('System of 2 ODEs 1st order solved with different methods')
+    plt.title('simulierte Lösung mit Schrittgröße = 10')
     plt.xlabel('t')
-    plt.ylabel('value of equation')
+    plt.ylabel('Wert der Gleichung bei t')
     plt.legend()
     plt.show()
 
@@ -54,15 +54,15 @@ def testODEwith2D():
     plt.plot(t_space, solForEuler.T[1] - y_an_sol, color='crimson', linewidth=1, label='forwardEuler y')
     plt.plot(t_space, solBackEuler.T[0] - x_an_sol, color='mediumblue', linewidth=1, label='backwardEuler x')
     plt.plot(t_space, solBackEuler.T[1] - y_an_sol, color='dodgerblue', linewidth=1, label='backwardEuler y')
-    plt.title('Error of ODE solvers with System of 2 ODEs 1st order')
+    plt.title('Fehler der simulierten Lösung mit Schrittgröße = 10')
     plt.xlabel('t')
-    plt.ylabel('value of equation')
+    plt.ylabel('Wert der Gleichung')
     plt.legend()
     plt.show()
 
 
 def testODEkonsistenz():
-    values = [1, 5, 10, 25, 50, 75, 100]
+    values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15]
     n = len(values)
     errRK4 = np.zeros(n)
     errForEuler = np.zeros(n)
@@ -95,11 +95,11 @@ def testODEkonsistenz():
     plt.plot(values, errBackEuler, color='mediumblue', linewidth=1, label='backwardEuler')
     plt.title('Konsistenzfehler')
     plt.xlabel('tau - Zwischenschritte pro Schritt')
-    plt.ylabel('size of error of numerical calculation')
+    plt.ylabel('größe Konsistenzfehlers')
     plt.legend()
     plt.show()
 
 
 if __name__ == "__main__":
-    # testODEwith2D()
+    testODEwith2D()
     testODEkonsistenz()
