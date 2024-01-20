@@ -78,8 +78,10 @@ for country in COLUMNS.keys():
 
         if col_name == "F" and mappings.get(col_map).get("Cumulated", False):
             df["D"] = df["F"].copy()
+            df["D[F]"] = df["D"].shift(LAG_DEATHS).fillna(value=0)
         elif col_name == "F":
             df["D"] = df["F"].cumsum()
+            df["D[F]"] = df["D"].shift(LAG_DEATHS).fillna(value=0)
 
         if mappings.get(col_map).get("Cumulated", False):
             df[col_name] = df[col_name] - df[col_name].shift(1)
