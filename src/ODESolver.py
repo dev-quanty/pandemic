@@ -1,8 +1,12 @@
+from functools import partial
 import numpy as np
 from scipy.optimize import fsolve
+from scipy.integrate import solve_ivp
+from scipy.linalg import lu_factor, lu_solve
+from autograd import make_jvp, jacobian
 
 
-def solve(func, y0, t, method="RK4", args=()):
+def solve(func, y0, t, method="RK4", args=(), **kwargs):
     """
     Solve the ODE-System given by the differential equation system in f.
 
@@ -12,22 +16,29 @@ def solve(func, y0, t, method="RK4", args=()):
         t: Vector of time points in ascending order in equidistant steps
         method: Method to solve the ODE-System. Default is 'RK4'
         args: Arguments used in the ODE-System
+        kwargs: Further arguments for the solve method
 
     Returns:
         result: Path of given variables at time steps t
     """
+    ode_fun = lambda t, y: func(y, t, args)
+    t0 = t[0]
+    t_bound = t[-1]
+
     if method.lower() == "expliciteuler":
-        return forwardEuler(func, y0, t, args)
+        return forwardEuler(func, y0, t, args, **kwargs)
     elif method.lower() == "impliciteuler":
-        return backwardEuler(func, y0, t, args)
+        return backwardEuler(func, y0, t, args, **kwargs)
     elif method.lower() == "rk4":
-        return RK4(func, y0, t, args)
+        return RK4(func, y0, t, args, **kwargs)
+    elif method in ["Radau", "BDF", "LSODA", "DOP853", "RK45", "RK23"]:
+        return solve_ivp(ode_fun, (t0, t_bound), y0, method=method, t_eval=t).y.T
     else:
         raise ValueError(f"Method {method} not implemented.")
     pass
 
 
-def forwardEuler(func, y0, t, args):
+def forwardEuler(func, y0, t, args, **kwargs):
     result = np.zeros((np.size(t), np.size(y0)))
     result[0] = y0
     dt = t[1] - t[0]
@@ -37,7 +48,7 @@ def forwardEuler(func, y0, t, args):
     return result
 
 
-def backwardEuler(func, y0, t, args):
+def backwardEuler(func, y0, t, args, **kwargs):
     result = np.zeros((np.size(t), np.size(y0)))
     result[0, :] = y0
     dt = t[1] - t[0]
@@ -47,7 +58,7 @@ def backwardEuler(func, y0, t, args):
     return result
 
 
-def RK4(func, y0, t, args):
+def RK4(func, y0, t, args, **kwargs):
     result = np.zeros((np.size(t), np.size(y0)))
     result[0] = y0
     dt = t[1] - t[0]
