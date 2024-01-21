@@ -55,7 +55,8 @@ def minloss(data, model, parameters, method="fmin", solver="RK4", **kwargs):
         return params
 
     def loss(missingParams):
-        if np.min(missingParams) < 0: return 10 ** 20
+        if np.min(missingParams) <= 0: return 10 ** 20
+        if np.max(missingParams) > 1: return 10 ** 20
         params = fillParams(missingParams)
         y_est = solve(model, y0, t_est, solver, params)
         interpolator = interp1d(t_est, y_est.T, kind="cubic")
