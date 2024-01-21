@@ -66,7 +66,7 @@ def minloss(data, model, parameters, method="fmin", solver="RK4", **kwargs):
         else:
             return np.linalg.norm(y_fitted - y)
 
-    missingParams = [0] * nparams
+    missingParams = [0.2] * nparams
 
     if method == "fmin":
         minimum = fmin(loss, missingParams)
