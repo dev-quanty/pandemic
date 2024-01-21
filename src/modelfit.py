@@ -10,7 +10,7 @@ from src.fitting import minloss
 # Static variables
 DATA_DIR = "../Data/Processed/"
 COUNTRY = "Liberia"
-MODEL = sir
+MODEL = seird
 METHOD = "fmin"
 SOLVER = "impliciteuler"
 
@@ -22,7 +22,7 @@ PARAMETERS = {
     "ki": None,
     "kh": None,
     "kf": None,
-    "e": None,
+    "e": 0.0954,
     "qe": None,
     "qi": None,
     "h": None,
@@ -45,8 +45,10 @@ df["t"] = (df["Date"] - start_dt).dt.days
 if MODEL == sir:
     # Data preparation
     df.rename(columns={"E-I": "I", "D": "R"}, inplace=True)
-    df["R"] = df["R"] / PARAMETERS.get("pi")
-    y0 = np.array([N - df.loc[0, "I"], df.loc[0, "I"], 0])
+    df["I"] = 100* df["I"] / N
+    df["R"] = 100 * df["R"] / (N * PARAMETERS.get("pi", 0.666))
+    start_value = 100 - df.loc[0, "I"] - df.loc[0, "R"]
+    y0 = np.array([start_value, df.loc[0, "I"], df.loc[0, "R"]])
     y = df[["t", "I", "R"]].to_numpy()
     stop = df[["t"]].to_numpy().max()
     t = np.linspace(start=0, stop=stop, num=stop+1, endpoint=True)
@@ -78,11 +80,15 @@ if MODEL == sir:
 elif MODEL == seird:
     # Data preparation
     df.rename(columns={"E-I": "E"}, inplace=True)
-    y0 = np.array([N - df.loc[0, "E"] - df.loc[0, "D"], df.loc[0, "E"], 0, 0, df.loc[0, "D"]])
-    y = df[["t", "E", "D"]].to_numpy()
+    for col in ["E", "D"]:
+        df[col] = 100 * df[col] / N
+    df["R"] = df["D"] / PARAMETERS.get("pi", 0.666)
+    start_value = 100 - df.loc[0, "E"] - df.loc[0, "D"] - df.loc[0, "R"]
+    y0 = np.array([start_value, df.loc[0, "E"], 0, df.loc[0, "R"], df.loc[0, "D"]])
+    y = df[["t", "E", "R", "D"]].to_numpy()
     stop = df[["t"]].to_numpy().max()
     t = np.linspace(start=0, stop=stop, num=stop+1, endpoint=True)
-    letters = "ED"
+    letters = "ERD"
 
     # Choose parameters
     ki = PARAMETERS.get("ki")
@@ -114,12 +120,15 @@ elif MODEL == seird:
 elif MODEL == seirqhfd:
     # Data preparation
     df.rename(columns={"E-I": "E", "QE-QI": "QE", "D[F]": "D", "D": "D_Old"}, inplace=True)
-    start_value = N - df.loc[0, "E"] - df.loc[0, "QE"] - df.loc[0, "H"] - df.loc[0, "F"] - df.loc[0, "D"]
-    y0 = np.array([start_value, df.loc[0, "E"], 0, df.loc[0, "QE"], 0, df.loc[0, "H"], 0, df.loc[0, "F"], df.loc[0, "D"]])
-    y = df[["t", "E", "QE", "H", "F", "D"]].to_numpy()
+    for col in ["E", "QE", "H", "F", "D"]:
+        df[col] = 100 * df[col] / N
+    df["R"] = df["D"] / PARAMETERS.get("pi", 0.666)
+    start_value = 100 - df.loc[0, "E"] - df.loc[0, "QE"] - df.loc[0, "H"] - df.loc[0, "F"] - df.loc[0, "D"] - df.loc[0, "R"]
+    y0 = np.array([start_value, df.loc[0, "E"], 0, df.loc[0, "QE"], 0, df.loc[0, "H"], df.loc[0, "R"], df.loc[0, "F"], df.loc[0, "D"]])
+    y = df[["t", "E", "QE", "H", "R", "F", "D"]].to_numpy()
     stop = df[["t"]].to_numpy().max()
     t = np.linspace(start=0, stop=stop, num=stop+1, endpoint=True)
-    letters = ["E", "QE", "H", "F", "D"]
+    letters = ["E", "QE", "H", "R", "F", "D"]
 
     # Choose parameters
     ki = PARAMETERS.get("ki")
