@@ -104,8 +104,13 @@ for country in COLUMNS.keys():
     drop_columns = df.columns.to_list()
     drop_columns.remove("Country"); drop_columns.remove("E-I")
     df.dropna(axis=0, subset=drop_columns, inplace=True)
-    df.reset_index(drop=False, names="Date", inplace=True)
 
+    # Make data daily to correctly weight loss calculation
+    ix = pd.date_range(start=df.index[0], end=df.index[-1], freq='D')
+    df = df.reindex(ix)
+    df["Country"] = country
+    df.interpolate(method="index", inplace=True)
+    df.reset_index(drop=False, names="Date", inplace=True)
     # Export data
     df.to_excel(os.path.join(OUT_DIR, f"{country}.xlsx"), index=False)
 
