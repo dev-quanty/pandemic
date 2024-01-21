@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from src.models import sir, seird, seirqhfd
+from src.models import sir, seird, seirqhfd, seirqhfd_shared_weights
 from src.ODESolver import solve
 from src.fitting import minloss
 
@@ -12,11 +12,11 @@ DATA_DIR = "../Data/Processed/"
 COUNTRY = "Liberia"
 MODEL = seird
 METHOD = "fmin"
-SOLVER = "impliciteuler"
+SOLVER = "Radau"
 
 # Mappings
 N_COUNTRY = {
-    "Liberia": 10_000
+    "Liberia": 6_000
 }
 PARAMETERS = {
     "ki": None,
@@ -25,7 +25,7 @@ PARAMETERS = {
     "e": 0.0954,
     "qe": None,
     "qi": None,
-    "h": None,
+    "h": 0.2257,
     "yi": None,
     "yh": None,
     "pi": 0.666,
@@ -82,13 +82,12 @@ elif MODEL == seird:
     df.rename(columns={"E-I": "E"}, inplace=True)
     for col in ["E", "D"]:
         df[col] = 100 * df[col] / N
-    df["R"] = df["D"] / PARAMETERS.get("pi", 0.666)
-    start_value = 100 - df.loc[0, "E"] - df.loc[0, "D"] - df.loc[0, "R"]
-    y0 = np.array([start_value, df.loc[0, "E"], 0, df.loc[0, "R"], df.loc[0, "D"]])
-    y = df[["t", "E", "R", "D"]].to_numpy()
+    start_value = 100 - df.loc[0, "E"] - df.loc[0, "D"]
+    y0 = np.array([start_value, df.loc[0, "E"], 0, 0, df.loc[0, "D"]])
+    y = df[["t", "E", "D"]].to_numpy()
     stop = df[["t"]].to_numpy().max()
     t = np.linspace(start=0, stop=stop, num=stop+1, endpoint=True)
-    letters = "ERD"
+    letters = "ED"
 
     # Choose parameters
     ki = PARAMETERS.get("ki")
@@ -120,15 +119,14 @@ elif MODEL == seird:
 elif MODEL == seirqhfd:
     # Data preparation
     df.rename(columns={"E-I": "E", "QE-QI": "QE", "D[F]": "D", "D": "D_Old"}, inplace=True)
-    for col in ["E", "QE", "H", "F", "D"]:
+    for col in ["E", "H", "F", "D"]:
         df[col] = 100 * df[col] / N
-    df["R"] = df["D"] / PARAMETERS.get("pi", 0.666)
-    start_value = 100 - df.loc[0, "E"] - df.loc[0, "QE"] - df.loc[0, "H"] - df.loc[0, "F"] - df.loc[0, "D"] - df.loc[0, "R"]
-    y0 = np.array([start_value, df.loc[0, "E"], 0, df.loc[0, "QE"], 0, df.loc[0, "H"], df.loc[0, "R"], df.loc[0, "F"], df.loc[0, "D"]])
-    y = df[["t", "E", "QE", "H", "R", "F", "D"]].to_numpy()
+    start_value = 100 - df.loc[0, "E"] - df.loc[0, "H"] - df.loc[0, "F"] - df.loc[0, "D"]
+    y0 = np.array([start_value, df.loc[0, "E"], 0, 0, 0, df.loc[0, "H"], 0, df.loc[0, "F"], df.loc[0, "D"]])
+    y = df[["t", "E", "H", "F", "D"]].to_numpy()
     stop = df[["t"]].to_numpy().max()
     t = np.linspace(start=0, stop=stop, num=stop+1, endpoint=True)
-    letters = ["E", "QE", "H", "R", "F", "D"]
+    letters = ["E", "H", "F", "D"]
 
     # Choose parameters
     ki = PARAMETERS.get("ki")
@@ -151,10 +149,56 @@ elif MODEL == seirqhfd:
 
     # Plot model
     fig, ax = plt.subplots(nrows=6)
-    ax[0].scatter(y[:, 0], y[:, 0], label="E [Data]", c="black", marker="s")
+    ax[0].scatter(y[:, 0], y[:, 1], label="E [Data]", c="black", marker="s")
     ax[0].plot(t, y_fitted[:, 1], label="E [Fitted]", c="blue", linestyle="dashed")
     ax[1].plot(t, y_fitted[:, 2], label="I [Fitted]", c="blue", linestyle="dashed")
-    ax[2].scatter(y[:, 0], y[:, 1], label="QE [Data]", c="black", marker="s")
+    ax[2].plot(t, y_fitted[:, 3], label="QE [Fitted]", c="blue", linestyle="dashed")
+    ax[3].scatter(y[:, 0], y[:, 2], label="H [Data]", c="black", marker="s")
+    ax[3].plot(t, y_fitted[:, 5], label="H [Fitted]", c="blue", linestyle="dashed")
+    ax[4].scatter(y[:, 0], y[:, 3], label="F [Data]", c="black", marker="s")
+    ax[4].plot(t, y_fitted[:, 7], label="F [Fitted]", c="blue", linestyle="dashed")
+    ax[5].scatter(y[:, 0], y[:, 4], label="D [Data]", c="black", marker="s")
+    ax[5].plot(t, y_fitted[:, 8], label="D [Fitted]", c="blue", linestyle="dashed")
+
+    for axis in fig.axes:
+        axis.legend(loc="upper right")
+    plt.tight_layout()
+    plt.show()
+    print(fittedparams)
+
+elif MODEL == seirqhfd_shared_weights:
+    # Data preparation
+    df.rename(columns={"E-I": "E", "QE-QI": "QE", "D[F]": "D", "D": "D_Old"}, inplace=True)
+    for col in ["E", "H", "F", "D"]:
+        df[col] = 100 * df[col] / N
+    start_value = 100 - df.loc[0, "E"] - df.loc[0, "H"] - df.loc[0, "F"] - df.loc[0, "D"]
+    y0 = np.array([start_value, df.loc[0, "E"], 0, 0, 0, df.loc[0, "H"], 0, df.loc[0, "F"], df.loc[0, "D"]])
+    y = df[["t", "E", "H", "F", "D"]].to_numpy()
+    stop = df[["t"]].to_numpy().max()
+    t = np.linspace(start=0, stop=stop, num=stop+1, endpoint=True)
+    letters = ["E", "H", "F", "D"]
+
+    # Choose parameters
+    ki = PARAMETERS.get("ki")
+    kh = PARAMETERS.get("kh")
+    kf = PARAMETERS.get("kf")
+    e = PARAMETERS.get("e")
+    qe = PARAMETERS.get("qe")
+    h = PARAMETERS.get("h")
+    yi = PARAMETERS.get("yi")
+    pi = PARAMETERS.get("pi")
+    d = PARAMETERS.get("d")
+    args = [ki, kh, kf, e, qe, h, yi, pi, d]
+
+    # Fit model
+    fittedparams, loss = minloss(y, MODEL, args, method=METHOD, solver=SOLVER, y0=y0, letters=letters)
+    y_fitted = solve(MODEL, y0, t, args=fittedparams)
+
+    # Plot model
+    fig, ax = plt.subplots(nrows=6)
+    ax[0].scatter(y[:, 0], y[:, 1], label="E [Data]", c="black", marker="s")
+    ax[0].plot(t, y_fitted[:, 1], label="E [Fitted]", c="blue", linestyle="dashed")
+    ax[1].plot(t, y_fitted[:, 2], label="I [Fitted]", c="blue", linestyle="dashed")
     ax[2].plot(t, y_fitted[:, 3], label="QE [Fitted]", c="blue", linestyle="dashed")
     ax[3].scatter(y[:, 0], y[:, 2], label="H [Data]", c="black", marker="s")
     ax[3].plot(t, y_fitted[:, 5], label="H [Fitted]", c="blue", linestyle="dashed")
