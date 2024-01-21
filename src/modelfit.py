@@ -16,7 +16,9 @@ SOLVER = "Radau"
 
 # Mappings
 N_COUNTRY = {
-    "Liberia": 6_000
+    "Liberia": 4_000,
+    "SierraLeone": 6_000,
+    "Guinea": 6_000
 }
 PARAMETERS = {
     "ki": None,
@@ -25,7 +27,7 @@ PARAMETERS = {
     "e": 0.0954,
     "qe": None,
     "qi": None,
-    "h": 0.2257,
+    "h": None,
     "yi": None,
     "yh": None,
     "pi": 0.666,
@@ -66,10 +68,12 @@ if MODEL == sir:
     # Plot model
     fig, ax = plt.subplots(nrows=3)
     ax[0].plot(t, y_fitted[:, 0], label="S [Fitted]", c="blue", linestyle="dashed")
-    ax[1].scatter(y[:, 0], y[:, 1], label="I [Data]", c="black", marker="s")
+    ax[1].plot(y[:, 0], y[:, 1], label="I [Data]", c="black")
     ax[1].plot(t, y_fitted[:, 1], label="I [Fitted]", c="blue", linestyle="dashed")
-    ax[2].scatter(y[:, 0], y[:, 2], label="R [Data]", c="black", marker="s")
+    ax[2].plot(y[:, 0], y[:, 2], label="R [Data]", c="black")
     ax[2].plot(t, y_fitted[:, 2], label="R [Fitted]", c="blue", linestyle="dashed")
+    ax[1].set_ylabel("Fraction of Population")
+    ax[2].set_xlabel("Days t")
 
     for axis in fig.axes:
         axis.legend(loc="upper right")
@@ -103,12 +107,14 @@ elif MODEL == seird:
     # Plot model
     fig, ax = plt.subplots(nrows=5)
     ax[0].plot(t, y_fitted[:, 0], label="S [Fitted]", c="blue", linestyle="dashed")
-    ax[1].scatter(y[:, 0], y[:, 1], label="E [Data]", c="black", marker="s")
+    ax[1].plot(y[:, 0], y[:, 1], label="E [Data]", c="black")
     ax[1].plot(t, y_fitted[:, 1], label="E [Fitted]", c="blue", linestyle="dashed")
     ax[2].plot(t, y_fitted[:, 2], label="I [Fitted]", c="blue", linestyle="dashed")
     ax[3].plot(t, y_fitted[:, 3], label="R [Fitted]", c="blue", linestyle="dashed")
-    ax[4].scatter(y[:, 0], y[:, 2], label="D [Data]", c="black", marker="s")
+    ax[4].plot(y[:, 0], y[:, 2], label="D [Data]", c="black")
     ax[4].plot(t, y_fitted[:, 4], label="D [Fitted]", c="blue", linestyle="dashed")
+    ax[2].set_ylabel("Fraction of Population")
+    ax[4].set_xlabel("Days t")
 
     for axis in fig.axes:
         axis.legend(loc="upper right")
@@ -149,16 +155,18 @@ elif MODEL == seirqhfd:
 
     # Plot model
     fig, ax = plt.subplots(nrows=6)
-    ax[0].scatter(y[:, 0], y[:, 1], label="E [Data]", c="black", marker="s")
+    ax[0].plot(y[:, 0], y[:, 1], label="E [Data]", c="black")
     ax[0].plot(t, y_fitted[:, 1], label="E [Fitted]", c="blue", linestyle="dashed")
     ax[1].plot(t, y_fitted[:, 2], label="I [Fitted]", c="blue", linestyle="dashed")
     ax[2].plot(t, y_fitted[:, 3], label="QE [Fitted]", c="blue", linestyle="dashed")
-    ax[3].scatter(y[:, 0], y[:, 2], label="H [Data]", c="black", marker="s")
+    ax[3].plot(y[:, 0], y[:, 2], label="H [Data]", c="black")
     ax[3].plot(t, y_fitted[:, 5], label="H [Fitted]", c="blue", linestyle="dashed")
-    ax[4].scatter(y[:, 0], y[:, 3], label="F [Data]", c="black", marker="s")
+    ax[4].plot(y[:, 0], y[:, 3], label="F [Data]", c="black")
     ax[4].plot(t, y_fitted[:, 7], label="F [Fitted]", c="blue", linestyle="dashed")
-    ax[5].scatter(y[:, 0], y[:, 4], label="D [Data]", c="black", marker="s")
+    ax[5].plot(y[:, 0], y[:, 4], label="D [Data]", c="black")
     ax[5].plot(t, y_fitted[:, 8], label="D [Fitted]", c="blue", linestyle="dashed")
+    ax[2].set_ylabel("Fraction of Population")
+    ax[5].set_xlabel("Days t")
 
     for axis in fig.axes:
         axis.legend(loc="upper right")
@@ -196,16 +204,18 @@ elif MODEL == seirqhfd_shared_weights:
 
     # Plot model
     fig, ax = plt.subplots(nrows=6)
-    ax[0].scatter(y[:, 0], y[:, 1], label="E [Data]", c="black", marker="s")
+    ax[0].plot(y[:, 0], y[:, 1], label="E [Data]", c="black")
     ax[0].plot(t, y_fitted[:, 1], label="E [Fitted]", c="blue", linestyle="dashed")
     ax[1].plot(t, y_fitted[:, 2], label="I [Fitted]", c="blue", linestyle="dashed")
     ax[2].plot(t, y_fitted[:, 3], label="QE [Fitted]", c="blue", linestyle="dashed")
-    ax[3].scatter(y[:, 0], y[:, 2], label="H [Data]", c="black", marker="s")
+    ax[3].plot(y[:, 0], y[:, 2], label="H [Data]", c="black")
     ax[3].plot(t, y_fitted[:, 5], label="H [Fitted]", c="blue", linestyle="dashed")
-    ax[4].scatter(y[:, 0], y[:, 3], label="F [Data]", c="black", marker="s")
+    ax[4].plot(y[:, 0], y[:, 3], label="F [Data]", c="black")
     ax[4].plot(t, y_fitted[:, 7], label="F [Fitted]", c="blue", linestyle="dashed")
-    ax[5].scatter(y[:, 0], y[:, 4], label="D [Data]", c="black", marker="s")
+    ax[5].plot(y[:, 0], y[:, 4], label="D [Data]", c="black")
     ax[5].plot(t, y_fitted[:, 8], label="D [Fitted]", c="blue", linestyle="dashed")
+    ax[2].set_ylabel("Fraction of Population")
+    ax[5].set_xlabel("Days t")
 
     for axis in fig.axes:
         axis.legend(loc="upper right")
