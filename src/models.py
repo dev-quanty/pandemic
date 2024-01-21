@@ -4,8 +4,8 @@ import numpy as np
 def sir(y, t, args):
     ki, yi = args
     S, I, R = y
-    dSdt = -ki * S * I
-    dIdt = ki * S * I - yi * I
+    dSdt = -ki / 100 * S * I
+    dIdt = ki / 100 * S * I - yi * I
     dRdt = yi * I
     return np.array([dSdt, dIdt, dRdt])
 
@@ -13,8 +13,8 @@ def sir(y, t, args):
 def seird(y, t, args):
     ki, e, yi, pi = args
     S, E, I, R, D = y
-    dSdt = -ki * S * I
-    dEdt = ki * S * I - e * E
+    dSdt = -ki / 100 * S * I
+    dEdt = ki / 100 * S * I - e * E
     dIdt = e * E - yi * I
     dRdt = yi * (1 - pi) * I
     dDdt = yi * pi * I
@@ -24,8 +24,8 @@ def seird(y, t, args):
 def seirqhfd(y, t, args):
     ki, kh, kf, e, qe, qi, h, yi, yh, pi, ph, d = args
     S, E, I, QE, QI, H, R, F, D = y
-    dSdt = -ki * S * I - kh * S * H - kf * S * F
-    dEdt = ki * S * I + kh * S * H + kf * S * F - e * E - qe * E
+    dSdt = -ki / 100 * S * I - kh / 100 * S * H - kf / 100 * S * F
+    dEdt = ki / 100 * S * I + kh / 100 * S * H + kf / 100 * S * F - e * E - qe * E
     dIdt = e * E - qi * I - yi * I - h * I
     dQEdt = qe * E - e * QE
     dQIdt = e * QE + qi * I - yi * QI - h * QI
@@ -39,8 +39,8 @@ def seirqhfd(y, t, args):
 def seirqhfd_shared_weights(y, t, args):
     ki, kh, kf, e, qe, h, yi, pi, d = args
     S, E, I, QE, QI, H, R, F, D = y
-    dSdt = -ki * S * I - kh * S * H - kf * S * F
-    dEdt = ki * S * I + kh * S * H + kf * S * F - e * E - qe * E
+    dSdt = -ki / 100 * S * I - kh / 100 * S * H - kf / 100 * S * F
+    dEdt = ki / 100 * S * I + kh / 100 * S * H + kf / 100 * S * F - e * E - qe * E
     dIdt = e * E - qe * I - yi * I - h * I
     dQEdt = qe * E - e * QE
     dQIdt = e * QE + qe * I - yi * QI - h * QI
