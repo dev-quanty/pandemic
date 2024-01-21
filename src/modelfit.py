@@ -10,7 +10,7 @@ from src.fitting import minloss
 # Static variables
 DATA_DIR = "../Data/Processed/"
 COUNTRY = "Liberia"
-MODEL = seird
+MODEL = sir
 METHOD = "fmin"
 SOLVER = "impliciteuler"
 
@@ -29,7 +29,7 @@ PARAMETERS = {
     "yi": None,
     "yh": None,
     "pi": 0.666,
-    "ph": None,
+    "ph": 0.666,
     "d": None
 }
 
@@ -45,7 +45,6 @@ df["t"] = (df["Date"] - start_dt).dt.days
 if MODEL == sir:
     # Data preparation
     df.rename(columns={"E-I": "I", "D": "R"}, inplace=True)
-    df["I"] = df["I"]
     df["R"] = df["R"] / PARAMETERS.get("pi")
     y0 = np.array([N - df.loc[0, "I"], df.loc[0, "I"], 0])
     y = df[["t", "I", "R"]].to_numpy()
@@ -79,8 +78,6 @@ if MODEL == sir:
 elif MODEL == seird:
     # Data preparation
     df.rename(columns={"E-I": "E"}, inplace=True)
-    df["E"] = df["E"]
-    df["D"] = df["D"]
     y0 = np.array([N - df.loc[0, "E"] - df.loc[0, "D"], df.loc[0, "E"], 0, 0, df.loc[0, "D"]])
     y = df[["t", "E", "D"]].to_numpy()
     stop = df[["t"]].to_numpy().max()
@@ -112,6 +109,56 @@ elif MODEL == seird:
         axis.legend(loc="upper right")
     plt.tight_layout()
     plt.show()
+    print(fittedparams)
+
+elif MODEL == seirqhfd:
+    # Data preparation
+    df.rename(columns={"E-I": "E", "QE-QI": "QE", "D[F]": "D", "D": "D_Old"}, inplace=True)
+    start_value = N - df.loc[0, "E"] - df.loc[0, "QE"] - df.loc[0, "H"] - df.loc[0, "F"] - df.loc[0, "D"]
+    y0 = np.array([start_value, df.loc[0, "E"], 0, df.loc[0, "QE"], 0, df.loc[0, "H"], 0, df.loc[0, "F"], df.loc[0, "D"]])
+    y = df[["t", "E", "QE", "H", "F", "D"]].to_numpy()
+    stop = df[["t"]].to_numpy().max()
+    t = np.linspace(start=0, stop=stop, num=stop+1, endpoint=True)
+    letters = ["E", "QE", "H", "F", "D"]
+
+    # Choose parameters
+    ki = PARAMETERS.get("ki")
+    kh = PARAMETERS.get("kh")
+    kf = PARAMETERS.get("kf")
+    e = PARAMETERS.get("e")
+    qe = PARAMETERS.get("qe")
+    qi = PARAMETERS.get("qi")
+    h = PARAMETERS.get("h")
+    yi = PARAMETERS.get("yi")
+    yh = PARAMETERS.get("yh")
+    pi = PARAMETERS.get("pi")
+    ph = PARAMETERS.get("ph")
+    d = PARAMETERS.get("d")
+    args = [ki, kh, kf, e, qe, qi, h, yi, yh, pi, ph, d]
+
+    # Fit model
+    fittedparams, loss = minloss(y, MODEL, args, method=METHOD, solver=SOLVER, y0=y0, letters=letters)
+    y_fitted = solve(MODEL, y0, t, args=fittedparams)
+
+    # Plot model
+    fig, ax = plt.subplots(nrows=6)
+    ax[0].scatter(y[:, 0], y[:, 0], label="E [Data]", c="black", marker="s")
+    ax[0].plot(t, y_fitted[:, 1], label="E [Fitted]", c="blue", linestyle="dashed")
+    ax[1].plot(t, y_fitted[:, 2], label="I [Fitted]", c="blue", linestyle="dashed")
+    ax[2].scatter(y[:, 0], y[:, 1], label="QE [Data]", c="black", marker="s")
+    ax[2].plot(t, y_fitted[:, 3], label="QE [Fitted]", c="blue", linestyle="dashed")
+    ax[3].scatter(y[:, 0], y[:, 2], label="H [Data]", c="black", marker="s")
+    ax[3].plot(t, y_fitted[:, 5], label="H [Fitted]", c="blue", linestyle="dashed")
+    ax[4].scatter(y[:, 0], y[:, 3], label="F [Data]", c="black", marker="s")
+    ax[4].plot(t, y_fitted[:, 7], label="F [Fitted]", c="blue", linestyle="dashed")
+    ax[5].scatter(y[:, 0], y[:, 4], label="D [Data]", c="black", marker="s")
+    ax[5].plot(t, y_fitted[:, 8], label="D [Fitted]", c="blue", linestyle="dashed")
+
+    for axis in fig.axes:
+        axis.legend(loc="upper right")
+    plt.tight_layout()
+    plt.show()
+    print(fittedparams)
 
 else:
     raise ValueError("Missing correct model")
