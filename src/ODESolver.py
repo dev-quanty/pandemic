@@ -2,6 +2,7 @@ import numpy as np
 from scipy.optimize import fsolve
 
 
+
 def solve(func, y0, t, method="RK4", args=()):
     """
     Solve the ODE-System given by the differential equation system in f.

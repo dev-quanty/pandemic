@@ -2,9 +2,10 @@ from scipy.optimize import fmin
 from scipy.interpolate import interp1d
 import numpy as np
 from ODESolver import solve
-from models import letter_index, sir
+from models import letter_index, sir, seird
 from toms178 import hooke
 import matplotlib.pyplot as plt
+
 
 
 def minloss(data, model, parameters, method="fmin", solver="RK4", **kwargs):
@@ -81,26 +82,33 @@ def minloss(data, model, parameters, method="fmin", solver="RK4", **kwargs):
     return fillParams(minimum), fittedLoss
 
 
-def fittingArtificial():
-    # Create true data
-    y0 = [9, 1, 0]
-    params = [0.321, 1.677]
-    t = np.linspace(0, 6, 1000)
-    y = solve(sir, y0, t, args=params)
+def fittingArtificial(model):
+    if model == sir:
+        # Create true data
+        y0 = [9, 1, 0]
+        params = [0.321, 1.677]
+        t = np.linspace(0, 6, 1000)
+        y = solve(sir, y0, t, args=params)
 
-    # Fit all parameters
-    fittedparams, loss = minloss(np.hstack([t.reshape(-1, 1), y[:, [0, 1]]]), sir, [None, None], "hooke", "RK4",
+        # Fit all parameters
+        fittedparams, loss = minloss(np.hstack([t.reshape(-1, 1), y[:, [0, 1]]]), sir, [None, None], "hooke", "RK4",
                                  letters="SI")
-    ytest = solve(sir, y0, t, args=fittedparams)
+        ytest = solve(sir, y0, t, args=fittedparams)
 
-    fig, ax = plt.subplots()
-    ax.set_title(f"True Parameters: {params}\nFitted: {fittedparams} - Loss: {loss:.3f}")
-    ax.plot(t, y[:, 0], label="S [True]", c="black")
-    ax.plot(t, ytest[:, 0], label="S [Test]", c="blue")
-    ax.plot(t, y[:, 1], label="I [True]", c="red")
-    ax.plot(t, ytest[:, 1], label="I [Test]", c="orange")
-    plt.show()
+        fig, ax = plt.subplots()
+        ax.set_title(f"True Parameters: {params}\nFitted: {fittedparams} - Loss: {loss:.3f}")
+        ax.plot(t, y[:, 0], label="S [True]", c="black")
+        ax.plot(t, ytest[:, 0], label="S [Test]", c="blue")
+        ax.plot(t, y[:, 1], label="I [True]", c="red")
+        ax.plot(t, ytest[:, 1], label="I [Test]", c="orange")
+        plt.show()
+
+
+
+
+
 
 
 if __name__ == "__main__":
     fittingArtificial()
+

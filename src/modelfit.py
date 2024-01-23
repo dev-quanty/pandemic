@@ -6,7 +6,6 @@ from src.models import sir, seird, seirqhfd
 from src.ODESolver import solve
 from src.fitting import minloss
 
-
 # Static variables
 DATA_DIR = "../Data/Processed/"
 COUNTRY = "Liberia"
@@ -41,6 +40,7 @@ N = N_COUNTRY.get(COUNTRY)
 start_dt = df.loc[0, "Date"]
 df["t"] = (df["Date"] - start_dt).dt.days
 
+
 # Prepare data and fit models
 if MODEL == sir:
     # Data preparation
@@ -50,7 +50,7 @@ if MODEL == sir:
     y0 = np.array([N - df.loc[0, "I"], df.loc[0, "I"], 0])
     y = df[["t", "I", "R"]].to_numpy()
     stop = df[["t"]].to_numpy().max()
-    t = np.linspace(start=0, stop=stop, num=stop+1, endpoint=True)
+    t = np.linspace(start=0, stop=stop, num=stop + 1, endpoint=True)
     letters = "IR"
 
     # Choose parameters
@@ -61,6 +61,7 @@ if MODEL == sir:
     # Fit model
     fittedparams, loss = minloss(y, MODEL, args, method=METHOD, solver=SOLVER, y0=y0, letters=letters)
     y_fitted = solve(MODEL, y0, t, args=fittedparams)
+
 
     # Plot model
     fig, ax = plt.subplots(nrows=3)
@@ -84,7 +85,7 @@ elif MODEL == seird:
     y0 = np.array([N - df.loc[0, "E"] - df.loc[0, "D"], df.loc[0, "E"], 0, 0, df.loc[0, "D"]])
     y = df[["t", "E", "D"]].to_numpy()
     stop = df[["t"]].to_numpy().max()
-    t = np.linspace(start=0, stop=stop, num=stop+1, endpoint=True)
+    t = np.linspace(start=0, stop=stop, num=stop + 1, endpoint=True)
     letters = "ED"
 
     # Choose parameters
@@ -115,3 +116,5 @@ elif MODEL == seird:
 
 else:
     raise ValueError("Missing correct model")
+
+
